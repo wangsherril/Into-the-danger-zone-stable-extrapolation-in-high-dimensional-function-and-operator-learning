@@ -8,7 +8,7 @@ This guide maps each main-paper panel to its experiment, active configuration, a
 |---|---|---|---|---|
 | Fig. 1 (left) | DNN | Wing-weight function; OOD width controlled by theta | `DNN/scripts/NN4virtual_library_thetacontrol.py` | `DNN/fig/DNN/id_ood_mse_depth_15_wingweight_scaled_10d_theta.png` |
 | Fig. 1 (right) | FNO | Navier–Stokes; ID alpha 2.5 and OOD alpha 2.0/2.25 | `FNO/scripts/FNO4NS_OOD.py` | `FNO/fig/NS/ns_fno3d_mse_errors.png` |
-| Fig. 2 (left) | ALS | Constant side lengths (`hypercube`), dimension 8 | `ALS/scripts/ALS_plot_2isq.m`, then `ALS/scripts/ALS_data_generation_2isq.py` | `ALS/figs/ALS_nonintegrable_singularity_delta_2ia_d8_a2_hypercube.png` |
+| Fig. 2 (left) | ALS | Constant side lengths (`hypercube`), dimension 8 |   `'ALS/scripts/ALS_data_generation_2isq.m', then ’ALS/scripts/ALS_plot_2isq.py'`| `ALS/figs/ALS_nonintegrable_singularity_delta_2ia_d8_a2_hypercube.png` |
 | Fig. 2 (right) | ALS | Constant side lengths (`hypercube`), dimension 32 | same as above | `ALS/figs/ALS_nonintegrable_singularity_delta_2ia_d32_a2_hypercube.png` |
 | Fig. 3 (left) | ALS | Varying side lengths (`unbounded`), dimension 8 | same as above | `ALS/figs/ALS_nonintegrable_singularity_delta_2ia_d8_a2_unbounded.png` |
 | Fig. 3 (right) | ALS | Varying side lengths (`unbounded`), dimension 32 | same as above | `ALS/figs/ALS_nonintegrable_singularity_delta_2ia_d32_a2_unbounded.png` |
@@ -22,25 +22,7 @@ This guide maps each main-paper panel to its experiment, active configuration, a
 ## Figure 1
 
 ### Left: DNN wing-weight experiment
-
-The checked-in parameter block already selects:
-
-```python
-target_name = "wingweight_scaled_10d"
-depths = [15]
-evaluation_metric = "mse"
-theta_values = 0.1 * np.array([1, 2, 3, 4])
-sample_sizes = [10 * 2**k for k in range(8)]
-trials = 30
-seed = 2026
-```
-
 For a fresh run, first set `generate_new_data = True` and `train_models = True`. To use existing data and checkpoints, leave both switches `False`.
-
-```bash
-python3 DNN/scripts/NN4virtual_library_thetacontrol.py
-```
-
 The script also writes the training-history plot and an `.npz` result file under `DNN/fig/DNN/` and `DNN/results/DNN/`.
 
 ### Right: FNO Navier–Stokes experiment
@@ -54,47 +36,18 @@ PLOT_ONLY = True
 EVAL_METRICS = ["mse"]
 ```
 
-and run:
-
-```bash
-python3 FNO/scripts/FNO4NS_OOD.py
-```
-
 This mode requires `FNO/results/NS/ns_fno3d_mse_results.npz`. For a complete data-generation/training run, follow the switch sequence in [readme.md](readme.md#fno-navierstokes).
 
 ## Figures 2 and 3: ALS
 
 Run the MATLAB experiment from `ALS/scripts/` because it uses relative paths for `../utils` and `../data`:
 
-```bash
-cd ALS/scripts
-matlab -batch "ALS_plot_2isq"
-cd ../..
-```
-
-The default settings are:
-
-```matlab
-fun_name = 'nonintegrable_singularity_delta_2ia';
-setups = {32, "unbounded"; 32, "hypercube"; 8, "unbounded"; 8, "hypercube"};
-m_max = 1.5e4;
-num_trials = 30;
-a_val_vec = [2];
-K = 10000;
-```
-
-For each unbounded setup, the script uses `b = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8]` and side lengths `w_k = k^b`. For each hypercube setup, it uses constant side lengths `omega = [1, 1.1, 1.2, 1.3, 1.6, 1.8]`.
-
-The MATLAB stage writes one `.mat` file per dimension, geometry, and OOD parameter to `ALS/data/`. Then generate all four panels and the fitted-rate tables with:
+For each unbounded setup, the script uses `b = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8]` and side lengths `w_k = k^b`. For each hypercube setup, it uses constant side lengths `omega = [1, 1.1, 1.2, 1.3, 1.6, 1.8]`. The MATLAB stage writes one `.mat` file per dimension, geometry, and OOD parameter to `ALS/data/`. Then generate all four panels and the fitted-rate tables with:
 
 ```bash
 python3 ALS/scripts/ALS_data_generation_2isq.py
 ```
 
-Despite its historical filename, `ALS_data_generation_2isq.py` is the plotting and post-processing stage. It fits rates using points with `m >= 80`, writes the four PNG files listed above, and saves:
-
-- `ALS/tables/ALS_hypercube_fit_slopes.csv`
-- `ALS/tables/ALS_unbounded_fit_slopes.csv`
 
 ## Figure 4: DNN virtual-library functions
 
@@ -127,12 +80,6 @@ ood_scales = [1.1, 1.2, 1.4]
 seed = 2026
 ```
 
-Run after each target change:
-
-```bash
-python3 DNN/scripts/NN4virtual_library_wcontrol.py
-```
-
 ## Figure 5: FNO Darcy flow
 
 Use `FNO4Darcy_LC_PC_cookie_withswitch.py` three times. Keep `train_distribution = "LN"` and `id_test_distribution = "LN"`, and change only `ood_test_distribution` between runs:
@@ -158,13 +105,6 @@ evaluation_metric = "relative_l2"
 seed = 2026
 ```
 
-For each distribution setting, run:
-
-```bash
-python3 FNO/scripts/FNO4Darcy_LC_PC_cookie_withswitch.py
-```
-
 With `generate_new_data = True` and `train_new_models = True`, each run creates data, trains models, evaluates ID/OOD error, and writes figures and results. With both switches `False`, the matching cached datasets and checkpoints must already exist under `FNO/results/Darcy/`.
 
-In addition to the main panel, each run can produce prediction examples, a maximum-training-size convergence plot, a CSV error table, and a compressed `.npz` result file.
 
