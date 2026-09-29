@@ -3,8 +3,6 @@
 Code and reproducibility materials for **Into the Danger Zone: Stable Extrapolation in High-Dimensional Function and Operator Learning**.
 
 - **Authors:** Ben Adcock, Simone Brugiapaglia, Xuemeng Wang
-- **Paper:** TODO — add the arXiv, journal, or DOI link
-- **Code version:** submitted-paper version
 
 ## Overview
 
